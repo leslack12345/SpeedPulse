@@ -21,6 +21,8 @@ export default function AdvertiserModal({ onClose }) {
     headline: '',
     description: '',
   });
+  const [honeypot, setHoneypot] = useState('');
+  const [loadedAt] = useState(Date.now());
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -31,6 +33,12 @@ export default function AdvertiserModal({ onClose }) {
   async function handleSubmit(e) {
     e.preventDefault();
     if (!selectedTier) return;
+
+    // Bot detection: honeypot filled or submitted too fast (under 3 seconds)
+    if (honeypot || Date.now() - loadedAt < 3000) {
+      setSubmitted(true); // Fake success so bot thinks it worked
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -146,6 +154,17 @@ export default function AdvertiserModal({ onClose }) {
               onChange={e => update('description', e.target.value)}
             />
             <div className="char-count">{form.description.length}/120</div>
+          </div>
+
+          {/* Honeypot — invisible to users, bots auto-fill it */}
+          <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
+            <label>Company URL</label>
+            <input
+              tabIndex={-1}
+              autoComplete="off"
+              value={honeypot}
+              onChange={e => setHoneypot(e.target.value)}
+            />
           </div>
 
           <button
