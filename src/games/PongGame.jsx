@@ -107,13 +107,26 @@ export default function PongGame() {
       state.player = e.clientY - rect.top - PADDLE_H / 2;
       state.player = Math.max(0, Math.min(H - PADDLE_H, state.player));
     }
+    function onTouch(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const scaleY = H / rect.height;
+      const touch = e.touches[0];
+      state.player = (touch.clientY - rect.top) * scaleY - PADDLE_H / 2;
+      state.player = Math.max(0, Math.min(H - PADDLE_H, state.player));
+    }
+
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('mousemove', onMouse);
+    canvas.addEventListener('touchstart', onTouch, { passive: false });
+    canvas.addEventListener('touchmove', onTouch, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKey);
       canvas.removeEventListener('mousemove', onMouse);
+      canvas.removeEventListener('touchstart', onTouch);
+      canvas.removeEventListener('touchmove', onTouch);
     };
   }, []);
 

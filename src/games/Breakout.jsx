@@ -14,7 +14,8 @@ export default function Breakout() {
     const W = canvas.width = 400;
     const H = canvas.height = 200;
 
-    const PADDLE_W = 50, PADDLE_H = 6;
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const PADDLE_W = isMobile ? 70 : 50, PADDLE_H = isMobile ? 8 : 6;
     const BALL_R = 4;
     const BRICK_ROWS = 3, BRICK_COLS = 10;
     const BRICK_W = (W - 20) / BRICK_COLS;
@@ -140,15 +141,32 @@ export default function Breakout() {
     }
     function onClick() { if (dead || won) init(); }
 
+    function onTouch(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const touch = e.touches[0];
+      paddle = (touch.clientX - rect.left) * scaleX - PADDLE_W / 2;
+      paddle = Math.max(0, Math.min(W - PADDLE_W, paddle));
+    }
+    function onTouchStart(e) {
+      if (dead || won) { init(); return; }
+      onTouch(e);
+    }
+
     canvas.addEventListener('mousemove', onMouse);
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouch, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       canvas.removeEventListener('mousemove', onMouse);
       window.removeEventListener('keydown', onKey);
       canvas.removeEventListener('click', onClick);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouch);
     };
   }, []);
 

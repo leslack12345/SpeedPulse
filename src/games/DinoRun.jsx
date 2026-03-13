@@ -159,13 +159,17 @@ export default function DinoRun() {
     }
     function onClick() { jump(); }
 
+    function onTouchStart(e) { e.preventDefault(); jump(); }
+
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKey);
       canvas.removeEventListener('click', onClick);
+      canvas.removeEventListener('touchstart', onTouchStart);
     };
   }, []);
 

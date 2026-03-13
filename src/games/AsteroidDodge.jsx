@@ -100,7 +100,7 @@ export default function AsteroidDodge() {
         ctx.fillStyle = '#8888a0';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Arrow keys to start dodging', W / 2, H / 2);
+        ctx.fillText('Arrow keys or drag to dodge', W / 2, H / 2);
       }
       if (dead) {
         ctx.fillStyle = '#ef4444';
@@ -126,13 +126,33 @@ export default function AsteroidDodge() {
       keys[e.code] = true;
     }
     function onKeyUp(e) { keys[e.code] = false; }
+
+    function onTouch(e) {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const touch = e.touches[0];
+      ship.x = (touch.clientX - rect.left) * scaleX;
+      ship.x = Math.max(SHIP_W / 2, Math.min(W - SHIP_W / 2, ship.x));
+    }
+    function onTouchStart(e) {
+      e.preventDefault();
+      if (dead) { init(); running = true; return; }
+      if (!running) running = true;
+      onTouch(e);
+    }
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouch, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouch);
     };
   }, []);
 

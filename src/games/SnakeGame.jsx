@@ -93,7 +93,7 @@ export default function SnakeGame() {
         ctx.fillStyle = '#8888a0';
         ctx.font = '14px sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText('Arrow keys to start', W / 2, H / 2);
+        ctx.fillText('Arrow keys or swipe to start', W / 2, H / 2);
       }
       if (dead) {
         ctx.fillStyle = '#ef4444';
@@ -128,12 +128,40 @@ export default function SnakeGame() {
       // Prevent reversing
       if (d.x !== -dir.x || d.y !== -dir.y) nextDir = d;
     }
+    let touchStart = null;
+    function onTouchStart(e) {
+      e.preventDefault();
+      const t = e.touches[0];
+      touchStart = { x: t.clientX, y: t.clientY };
+      if (dead) { init(); running = true; return; }
+      if (!running) running = true;
+    }
+    function onTouchEnd(e) {
+      if (!touchStart) return;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStart.x;
+      const dy = t.clientY - touchStart.y;
+      touchStart = null;
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return; // too small
+      let d;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        d = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+      } else {
+        d = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+      }
+      if (d.x !== -dir.x || d.y !== -dir.y) nextDir = d;
+    }
+
     window.addEventListener('keydown', onKey);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchend', onTouchEnd, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       clearInterval(tickInterval);
       window.removeEventListener('keydown', onKey);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchend', onTouchEnd);
     };
   }, []);
 

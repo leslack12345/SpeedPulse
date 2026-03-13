@@ -127,13 +127,17 @@ export default function FlappyDot() {
 
     function onKey(e) { if (e.code === 'Space') { e.preventDefault(); flap(); } }
     function onClick() { flap(); }
+    function onTouchStart(e) { e.preventDefault(); flap(); }
+
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('click', onClick);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKey);
       canvas.removeEventListener('click', onClick);
+      canvas.removeEventListener('touchstart', onTouchStart);
     };
   }, []);
 

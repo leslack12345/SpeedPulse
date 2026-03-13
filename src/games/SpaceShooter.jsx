@@ -135,7 +135,7 @@ export default function SpaceShooter() {
         ctx.fillText('INVADED', W / 2, H / 2 - 10);
         ctx.fillStyle = '#8888a0';
         ctx.font = '12px sans-serif';
-        ctx.fillText('Press SPACE to retry', W / 2, H / 2 + 12);
+        ctx.fillText('SPACE or tap to retry', W / 2, H / 2 + 12);
       }
     }
 
@@ -154,13 +154,39 @@ export default function SpaceShooter() {
       }
     }
     function onKeyUp(e) { keys[e.code] = false; }
+
+    let lastFireFrame = 0;
+    function onTouch(e) {
+      e.preventDefault();
+      if (dead) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const touch = e.touches[0];
+      ship.x = (touch.clientX - rect.left) * scaleX;
+      ship.x = Math.max(10, Math.min(W - 10, ship.x));
+      // Auto-fire while touching
+      if (frame - lastFireFrame > 10) {
+        bullets.push({ x: ship.x, y: ship.y - 12 });
+        lastFireFrame = frame;
+      }
+    }
+    function onTouchStart(e) {
+      e.preventDefault();
+      if (dead) { init(); return; }
+      onTouch(e);
+    }
+
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', onTouch, { passive: false });
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      canvas.removeEventListener('touchstart', onTouchStart);
+      canvas.removeEventListener('touchmove', onTouch);
     };
   }, []);
 
