@@ -9,13 +9,11 @@ function sanitize(str, maxLen) {
   return str.trim().slice(0, maxLen);
 }
 
-function isValidUrl(str) {
-  try {
-    const url = new URL(str);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch {
-    return false;
-  }
+function isValidWebsite(str) {
+  // Reject anything with script-like content
+  if (/[<>"'`]|javascript:/i.test(str)) return false;
+  // Accept plain domains (test4.com) or full URLs (https://test4.com)
+  return /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}/.test(str.replace(/^https?:\/\//, ''));
 }
 
 /**
@@ -58,9 +56,9 @@ export async function handler(event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid email address' }) };
   }
 
-  // Validate website URL if provided
-  if (website && !isValidUrl(website)) {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid website URL — must start with http:// or https://' }) };
+  // Validate website if provided
+  if (website && !isValidWebsite(website)) {
+    return { statusCode: 400, body: JSON.stringify({ error: 'Invalid website' }) };
   }
 
   // Validate package selection

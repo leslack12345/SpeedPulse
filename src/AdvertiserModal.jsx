@@ -122,9 +122,7 @@ export default function AdvertiserModal({ onClose }) {
           <div className="form-group">
             <label>Website</label>
             <input
-              type="url"
-              required
-              placeholder="https://"
+              placeholder="yoursite.com"
               value={form.website}
               onChange={e => update('website', e.target.value)}
             />
