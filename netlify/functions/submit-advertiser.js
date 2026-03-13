@@ -1,5 +1,21 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Simple in-memory rate limit (resets on cold start, but catches bursts)
+const submissions = new Map();
+const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
+const MAX_SUBMISSIONS_PER_IP = 3;
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const record = submissions.get(ip);
+  if (!record || now - record.first > RATE_LIMIT_WINDOW) {
+    submissions.set(ip, { first: now, count: 1 });
+    return false;
+  }
+  record.count++;
+  return record.count > MAX_SUBMISSIONS_PER_IP;
+}
+
 const VALID_PACKAGES = ['starter', 'mid-content', 'pro'];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_LENGTHS = { business_name: 200, contact_name: 200, email: 254, website: 500, headline: 60, description: 120 };
@@ -23,6 +39,12 @@ function isValidWebsite(str) {
 export async function handler(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
+  }
+
+  // Rate limit: max 3 submissions per IP per hour
+  const clientIp = event.headers['x-forwarded-for'] || event.headers['client-ip'] || 'unknown';
+  if (isRateLimited(clientIp)) {
+    return { statusCode: 429, body: JSON.stringify({ error: 'Too many submissions. Please try again later.' }) };
   }
 
   const supabase = createClient(
@@ -85,19 +107,35 @@ export async function handler(event) {
     };
   }
 
-  // Send webhook notification (fire-and-forget)
-  const webhookUrl = process.env.NOTIFY_WEBHOOK;
-  if (webhookUrl) {
+  // Send email notification (fire-and-forget)
+  const resendKey = process.env.RESEND_API_KEY;
+  const notifyEmail = process.env.NOTIFY_EMAIL;
+  if (resendKey && notifyEmail) {
     try {
-      await fetch(webhookUrl, {
+      await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${resendKey}`,
+        },
         body: JSON.stringify({
-          text: `New advertiser application: ${business_name} (${email}) — ${pkg} package`,
+          from: 'SpeedPulse <onboarding@resend.dev>',
+          to: notifyEmail,
+          subject: `New Ad Application: ${business_name}`,
+          html: `
+            <h2>New Advertiser Application</h2>
+            <p><strong>Business:</strong> ${business_name}</p>
+            <p><strong>Contact:</strong> ${contact_name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Website:</strong> ${website || 'N/A'}</p>
+            <p><strong>Package:</strong> ${pkg}</p>
+            <p><strong>Headline:</strong> ${headline}</p>
+            <p><strong>Description:</strong> ${description}</p>
+          `,
         }),
       });
     } catch {
-      // Webhook failure is non-critical
+      // Email failure is non-critical
     }
   }
 
