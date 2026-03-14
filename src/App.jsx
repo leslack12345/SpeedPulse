@@ -57,23 +57,31 @@ export default function App() {
     setDone(false);
     setResults({ download: null, upload: null, ping: null, jitter: null });
 
-    // ── DOWNLOAD TEST ──
+    // ── DOWNLOAD TEST (multi-stream to saturate connection) ──
     setStatus('Testing download speed...');
     setProgress(10);
     let downloadMbps = 0;
     try {
-      const dlStart = performance.now();
-      const resp = await fetch('https://speed.cloudflare.com/__down?bytes=10000000', { cache: 'no-store' });
-      const reader = resp.body.getReader();
+      const STREAMS = 6;
+      const CHUNK_SIZE = 25000000; // 25MB per stream
+      const TOTAL_TARGET = STREAMS * CHUNK_SIZE;
       let totalBytes = 0;
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        totalBytes += value.length;
-        // Update progress as data streams in
-        const pct = Math.min((totalBytes / 10000000) * 30, 30);
-        setProgress(10 + pct);
-      }
+
+      const dlStart = performance.now();
+      const streams = Array.from({ length: STREAMS }, () =>
+        fetch(`https://speed.cloudflare.com/__down?bytes=${CHUNK_SIZE}`, { cache: 'no-store' })
+          .then(async (resp) => {
+            const reader = resp.body.getReader();
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              totalBytes += value.length;
+              const pct = Math.min((totalBytes / TOTAL_TARGET) * 30, 30);
+              setProgress(10 + pct);
+            }
+          })
+      );
+      await Promise.all(streams);
       const dlEnd = performance.now();
       const durationSec = (dlEnd - dlStart) / 1000;
       downloadMbps = (totalBytes * 8) / (durationSec * 1000000);
@@ -82,17 +90,25 @@ export default function App() {
     }
     setResults(prev => ({ ...prev, download: Math.round(downloadMbps * 10) / 10 }));
 
-    // ── UPLOAD TEST ──
+    // ── UPLOAD TEST (multi-stream) ──
     setStatus('Testing upload speed...');
     setProgress(45);
     let uploadMbps = 0;
     try {
-      const blob = new Blob([new ArrayBuffer(5000000)]);
+      const UL_STREAMS = 4;
+      const UL_SIZE = 5000000; // 5MB per stream
+      const blobs = Array.from({ length: UL_STREAMS }, () => new Blob([new ArrayBuffer(UL_SIZE)]));
+      let completed = 0;
       const ulStart = performance.now();
-      await fetch('/api/upload-test', { method: 'POST', body: blob });
+      await Promise.all(blobs.map((blob) =>
+        fetch('/api/upload-test', { method: 'POST', body: blob }).then(() => {
+          completed++;
+          setProgress(45 + (completed / UL_STREAMS) * 25);
+        })
+      ));
       const ulEnd = performance.now();
       const durationSec = (ulEnd - ulStart) / 1000;
-      uploadMbps = (5000000 * 8) / (durationSec * 1000000);
+      uploadMbps = (UL_SIZE * UL_STREAMS * 8) / (durationSec * 1000000);
     } catch {
       uploadMbps = 0;
     }
