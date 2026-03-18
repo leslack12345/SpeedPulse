@@ -46,6 +46,18 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
   const [mobileTab, setMobileTab] = useState('speed');
 
+  // Log page visit
+  useEffect(() => {
+    fetch('/api/log-visit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path: window.location.pathname,
+        referrer: document.referrer || null,
+      }),
+    }).catch(() => {});
+  }, []);
+
   // Animated display values
   const dlDisplay = useAnimatedValue(results.download);
   const ulDisplay = useAnimatedValue(results.upload);
