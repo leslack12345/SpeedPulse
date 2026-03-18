@@ -47,6 +47,7 @@ export default function AdBanner({ placement }) {
       target="_blank"
       rel="noopener noreferrer"
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+      onClick={() => window.gtag?.('event', 'ad_click', { event_category: 'ads', placement, headline: ad.headline })}
     >
       <span className="ad-label">AD</span>
       <div className="ad-headline">{ad.headline}</div>

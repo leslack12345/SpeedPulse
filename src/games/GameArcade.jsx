@@ -40,6 +40,7 @@ export default function GameArcade() {
     do { next = Math.floor(Math.random() * GAMES.length); } while (next === gameIndex);
     setGameIndex(next);
     setGameKey(k => k + 1);
+    window.gtag?.('event', 'game_shuffle', { event_category: 'games', game_name: GAMES[next].name });
   }
 
   const game = GAMES[gameIndex];

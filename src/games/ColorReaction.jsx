@@ -40,6 +40,7 @@ export default function ColorReaction() {
       const newTimes = [...times, reaction];
       setTimes(newTimes);
       if (!best || reaction < best) setBest(reaction);
+      window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Reaction Test', reaction_ms: reaction });
     }
   }
 

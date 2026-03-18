@@ -13,6 +13,7 @@ export default function WhackAMole() {
   const moleTimerRef = useRef(null);
 
   const startGame = useCallback(() => {
+    window.gtag?.('event', 'game_start', { event_category: 'games', game_name: 'Mole Bonk' });
     setScore(0);
     setTimeLeft(30);
     setGameOver(false);
@@ -30,6 +31,7 @@ export default function WhackAMole() {
           setStarted(false);
           clearInterval(timerRef.current);
           clearInterval(moleTimerRef.current);
+          window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Mole Bonk' });
           return 0;
         }
         return prev - 1;

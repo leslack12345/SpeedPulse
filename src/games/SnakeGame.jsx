@@ -53,6 +53,7 @@ export default function SnakeGame() {
         dead = true;
         running = false;
         setGameOver(true);
+        window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Snake', score: scoreVal });
         return;
       }
 

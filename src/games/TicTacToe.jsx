@@ -54,6 +54,7 @@ export default function TicTacToe() {
       setBoard(next);
       setWinner(w);
       setWins(prev => prev + 1);
+      window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Tic-Tac-Toe', result: 'win' });
       return;
     }
     if (next.every(v => v)) {

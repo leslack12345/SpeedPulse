@@ -57,6 +57,7 @@ export default function DinoRun() {
       if (!state.running) {
         state.running = true;
         setStarted(true);
+        window.gtag?.('event', 'game_start', { event_category: 'games', game_name: 'Dino Run' });
       }
       if (!state.dino.jumping) {
         state.dino.vy = JUMP_FORCE;
@@ -99,6 +100,7 @@ export default function DinoRun() {
           state.dead = true;
           state.running = false;
           setGameOver(true);
+          window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Dino Run', score: state.score });
           return;
         }
       }

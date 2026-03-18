@@ -45,7 +45,10 @@ export default function MemoryMatch() {
         setMatched(newMatched);
         setFlipped([]);
         lockRef.current = false;
-        if (newMatched.length === cards.length) setWon(true);
+        if (newMatched.length === cards.length) {
+          setWon(true);
+          window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Memory Match', moves: newMoves });
+        }
       } else {
         setTimeout(() => {
           setFlipped([]);

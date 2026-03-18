@@ -48,6 +48,7 @@ export default function AdvertiserModal({ onClose }) {
         body: JSON.stringify({ ...form, package: selectedTier }),
       });
       if (resp.ok) {
+        window.gtag?.('event', 'advertiser_submit', { event_category: 'cta', tier: selectedTier });
         setSubmitted(true);
       }
     } catch {
@@ -90,7 +91,7 @@ export default function AdvertiserModal({ onClose }) {
             <div
               key={tier.id}
               className={`tier-card ${selectedTier === tier.id ? 'selected' : ''}`}
-              onClick={() => setSelectedTier(tier.id)}
+              onClick={() => { window.gtag?.('event', 'select_tier', { event_category: 'cta', tier: tier.id, price: tier.price }); setSelectedTier(tier.id); }}
             >
               <div className="tier-name">{tier.name}</div>
               <div className="tier-price">${tier.price}</div>

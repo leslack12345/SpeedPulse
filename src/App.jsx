@@ -65,6 +65,7 @@ export default function App() {
   const jitterDisplay = useAnimatedValue(results.jitter);
 
   async function runTest() {
+    window.gtag?.('event', 'start_speed_test', { event_category: 'engagement' });
     setTesting(true);
     setDone(false);
     setResults({ download: null, upload: null, ping: null, jitter: null });
@@ -161,6 +162,12 @@ export default function App() {
     setStatus('Test complete');
     setDone(true);
     setTesting(false);
+    window.gtag?.('event', 'speed_test_complete', {
+      event_category: 'engagement',
+      download: Math.round(downloadMbps * 10) / 10,
+      upload: Math.round(uploadMbps * 10) / 10,
+      ping: Math.round(avgPing),
+    });
   }
 
   const grade = done ? getGrade(results.download, results.upload, results.ping) : null;
@@ -256,7 +263,7 @@ export default function App() {
       {/* Advertiser CTA — full width */}
       <div className="advertiser-cta">
         <p>Want to reach thousands of speed-test users?</p>
-        <button onClick={() => setShowModal(true)}>Advertise With Us</button>
+        <button onClick={() => { window.gtag?.('event', 'open_advertiser_modal', { event_category: 'cta' }); setShowModal(true); }}>Advertise With Us</button>
       </div>
 
       {/* Advertiser Modal */}

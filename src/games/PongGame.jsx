@@ -52,8 +52,8 @@ export default function PongGame() {
       }
 
       // Score
-      if (b.x < 0) { state.cScore++; setCpuScore(state.cScore); resetBall(1); }
-      if (b.x > W) { state.pScore++; setPlayerScore(state.pScore); resetBall(-1); }
+      if (b.x < 0) { state.cScore++; setCpuScore(state.cScore); resetBall(1); window.gtag?.('event', 'game_point', { event_category: 'games', game_name: 'Pong', scorer: 'cpu' }); }
+      if (b.x > W) { state.pScore++; setPlayerScore(state.pScore); resetBall(-1); window.gtag?.('event', 'game_point', { event_category: 'games', game_name: 'Pong', scorer: 'player' }); }
 
       // CPU AI — follows ball with slight delay
       const cpuCenter = state.cpu + PADDLE_H / 2;

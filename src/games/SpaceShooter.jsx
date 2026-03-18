@@ -88,6 +88,7 @@ export default function SpaceShooter() {
         if (a.alive && a.y > H - 30) {
           dead = true;
           setGameOver(true);
+          window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Space Shooter', score: scoreVal });
           return;
         }
       }

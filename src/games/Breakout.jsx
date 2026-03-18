@@ -63,6 +63,7 @@ export default function Breakout() {
       if (ball.y > H + 10) {
         dead = true;
         setGameOver(true);
+        window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Brick Breaker', score: scoreVal });
       }
 
       // Brick collision
@@ -81,6 +82,7 @@ export default function Breakout() {
       if (bricks.every(b => !b.alive)) {
         won = true;
         setGameOver(true);
+        window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Brick Breaker', score: scoreVal, result: 'win' });
       }
     }
 

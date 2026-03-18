@@ -63,6 +63,7 @@ export default function AsteroidDodge() {
           dead = true;
           running = false;
           setGameOver(true);
+          window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Asteroid Dodge', score: scoreVal });
         }
       }
     }

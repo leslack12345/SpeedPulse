@@ -46,7 +46,10 @@ export default function FlappyDot() {
         setScore(0);
         return;
       }
-      if (!state.running) state.running = true;
+      if (!state.running) {
+        state.running = true;
+        window.gtag?.('event', 'game_start', { event_category: 'games', game_name: 'Flappy Dot' });
+      }
       state.bird.vy = FLAP;
     }
 
@@ -84,6 +87,7 @@ export default function FlappyDot() {
         state.dead = true;
         state.running = false;
         setGameOver(true);
+        window.gtag?.('event', 'game_over', { event_category: 'games', game_name: 'Flappy Dot', score: state.score });
       }
     }
 
